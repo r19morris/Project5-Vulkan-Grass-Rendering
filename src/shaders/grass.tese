@@ -27,9 +27,10 @@ void main() {
     float orientation = inV0[0].w;
     float width = inV2[0].w;
 
-    vec3 a = v0 + v * (v1 - v0);
-    vec3 b = v1 + v * (v2 - v1);
-    vec3 c = a + v * (b - a);
+    /* de Casteljau's algorithm */
+    vec3 a = v0 + v * (v1 - v0); // v / n of the way between v1 and v0
+    vec3 b = v1 + v * (v2 - v1); // ' v1 and v2
+    vec3 c = a + v * (b - a); // curve point, v of the way between a and b
 
     vec3 bitangent = vec3(cos(orientation), 0.0, sin(orientation));
     vec3 tangent = b - a;
