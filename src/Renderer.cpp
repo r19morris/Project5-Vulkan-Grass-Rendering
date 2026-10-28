@@ -972,6 +972,20 @@ void Renderer::RecordComputeCommandBuffer() {
     vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 1, 1, &timeDescriptorSet, 0, nullptr);
 
     for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
+        VkBuffer numBladesBuffer = scene->GetBlades()[i]->GetNumBladesBuffer();
+        vkCmdFillBuffer(computeCommandBuffer, numBladesBuffer, 0, sizeof(uint32_t), 0);
+
+        VkBufferMemoryBarrier resetBarrier = {};
+        resetBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        resetBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        resetBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        resetBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        resetBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        resetBarrier.buffer = numBladesBuffer;
+        resetBarrier.offset = 0;
+        resetBarrier.size = sizeof(uint32_t);
+        vkCmdPipelineBarrier(computeCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &resetBarrier, 0, nullptr);
+
         vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 2, 1, &computeDescriptorSets[i], 0, nullptr);
         vkCmdDispatch(computeCommandBuffer, (NUM_BLADES + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE, 1, 1);
     }
